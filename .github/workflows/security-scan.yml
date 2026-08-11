@@ -1,0 +1,41 @@
+name: API Security Scan
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install target API dependencies
+        run: pip install -r target_api/requirements.txt
+
+      - name: Start target API (secure mode)
+        run: |
+          VULNERABLE_MODE=false nohup python target_api/app.py &
+          for i in $(seq 1 20); do
+            curl -sf http://localhost:5000/health && break
+            sleep 1
+          done
+
+      - name: Install scanner dependencies
+        run: pip install -r scanner/requirements.txt
+
+      - name: Run security scan (fails the build on CRITICAL findings)
+        run: python -m scanner.cli --target http://localhost:5000 --output reports/report.html --fail-on CRITICAL
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: reports/report.html

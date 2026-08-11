@@ -1,0 +1,85 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Vulnerable Target API",
+    "version": "1.0.0",
+    "description": "Sample e-commerce/banking-style API used as the scanner's target."
+  },
+  "paths": {
+    "/api/login": {
+      "post": {
+        "summary": "Log in and receive a JWT",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {"type": "string"},
+                  "password": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "OK"}}
+      }
+    },
+    "/api/accounts/{account_id}": {
+      "get": {
+        "summary": "Get account details (balance etc.)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "account_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "OK"}}
+      }
+    },
+    "/api/orders/{order_id}": {
+      "get": {
+        "summary": "Get order details",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "order_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "OK"}}
+      }
+    },
+    "/api/users/{user_id}": {
+      "patch": {
+        "summary": "Update a user profile",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {"type": "string"},
+                  "email": {"type": "string"},
+                  "is_admin": {"type": "boolean"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "OK"}}
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "summary": "List all users (admin only)",
+        "security": [{"bearerAuth": []}],
+        "responses": {"200": {"description": "OK"}}
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
+    }
+  }
+}

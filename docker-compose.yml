@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  target-api:
+    build:
+      context: ./target_api
+    environment:
+      - VULNERABLE_MODE=${VULNERABLE_MODE:-true}
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+  scanner:
+    build:
+      context: .
+      dockerfile: scanner/Dockerfile
+    depends_on:
+      target-api:
+        condition: service_healthy
+    volumes:
+      - ./reports:/app/reports
+    command: ["--target", "http://target-api:5000", "--output", "reports/report.html", "--fail-on", "NONE"]
+
+# --- Optional extension: swap the in-memory store for Postgres ---
+# postgres:
+#   image: postgres:16-alpine
+#   environment:
+#     - POSTGRES_USER=apisec
+#     - POSTGRES_PASSWORD=apisec
+#     - POSTGRES_DB=apisec
+#   ports:
+#     - "5432:5432"

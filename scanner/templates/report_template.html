@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>API Security Scan Report</title>
+<style>
+  :root {
+    --critical: #c0392b;
+    --high: #e67e22;
+    --medium: #d4ac0d;
+    --low: #3498db;
+    --info: #95a5a6;
+    --bg: #0f1117;
+    --panel: #171a23;
+    --text: #e8e8ec;
+    --muted: #9aa0ac;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px;
+  }
+  h1 { margin: 0 0 4px 0; font-size: 26px; }
+  .meta { color: var(--muted); margin-bottom: 32px; font-size: 14px; }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .card {
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 18px;
+    border: 1px solid #262a36;
+  }
+  .card .num { font-size: 30px; font-weight: 700; }
+  .card .label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge.CRITICAL { background: var(--critical); color: white; }
+  .badge.HIGH { background: var(--high); color: white; }
+  .badge.MEDIUM { background: var(--medium); color: #1a1a1a; }
+  .badge.LOW { background: var(--low); color: white; }
+  .badge.INFO { background: var(--info); color: white; }
+  .finding {
+    background: var(--panel);
+    border: 1px solid #262a36;
+    border-left: 4px solid var(--muted);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .finding.CRITICAL { border-left-color: var(--critical); }
+  .finding.HIGH { border-left-color: var(--high); }
+  .finding.MEDIUM { border-left-color: var(--medium); }
+  .finding.LOW { border-left-color: var(--low); }
+  .finding-title { font-size: 16px; font-weight: 600; margin: 6px 0; }
+  .owasp-tag { color: var(--muted); font-size: 13px; }
+  .endpoint { font-family: "SF Mono", Consolas, monospace; font-size: 13px; color: var(--muted); margin: 6px 0; }
+  .evidence, .remediation { font-size: 14px; margin-top: 8px; line-height: 1.5; }
+  .remediation { color: #a3d9a5; }
+  .remediation strong { color: #d5f5d6; }
+  .empty-state { text-align: center; padding: 60px 0; color: var(--muted); font-size: 16px; }
+</style>
+</head>
+<body>
+  <h1>API Security Scan Report</h1>
+  <div class="meta">
+    Target: {{ target_url }} &middot; Generated: {{ generated_at }}
+    {% if vulnerable_mode is not none %}&middot; VULNERABLE_MODE={{ vulnerable_mode }}{% endif %}
+  </div>
+
+  <div class="summary-grid">
+    <div class="card"><div class="num">{{ summary.total }}</div><div class="label">Total Findings</div></div>
+    <div class="card"><div class="num" style="color:var(--critical)">{{ summary.by_severity.get('CRITICAL', 0) }}</div><div class="label">Critical</div></div>
+    <div class="card"><div class="num" style="color:var(--high)">{{ summary.by_severity.get('HIGH', 0) }}</div><div class="label">High</div></div>
+    <div class="card"><div class="num" style="color:var(--medium)">{{ summary.by_severity.get('MEDIUM', 0) }}</div><div class="label">Medium</div></div>
+    <div class="card"><div class="num" style="color:var(--low)">{{ summary.by_severity.get('LOW', 0) }}</div><div class="label">Low</div></div>
+  </div>
+
+  {% if findings %}
+    {% for f in findings %}
+    <div class="finding {{ f.severity }}">
+      <span class="badge {{ f.severity }}">{{ f.severity }}</span>
+      <span class="owasp-tag">&nbsp;{{ f.owasp }} &middot; CVSS ~{{ severity_score.get(f.severity, '-') }}</span>
+      <div class="finding-title">{{ f.title }}</div>
+      <div class="endpoint">{{ f.endpoint }}</div>
+      <div class="evidence">{{ f.evidence }}</div>
+      <div class="remediation"><strong>Remediation:</strong> {{ f.remediation }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No findings at or above the configured threshold. ✅</div>
+  {% endif %}
+</body>
+</html>
